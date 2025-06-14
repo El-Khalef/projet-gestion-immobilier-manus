@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un bien immobilier - Gestion Immobilière{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.properties_list') }}">Biens immobiliers</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Ajouter un bien</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Ajouter un bien immobilier</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <form action="{{ url_for('main.property_create') }}" method="POST" class="needs-validation" novalidate>
+                    <!-- Informations générales -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Informations générales</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="title" class="form-label">Titre*</label>
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir un titre.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="reference_code" class="form-label">Code de référence*</label>
+                                    <input type="text" class="form-control" id="reference_code" name="reference_code" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir un code de référence.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="property_type" class="form-label">Type de bien*</label>
+                                    <select class="form-select" id="property_type" name="property_type" required>
+                                        <option value="">Sélectionner un type</option>
+                                        <option value="apartment">Appartement</option>
+                                        <option value="house">Maison</option>
+                                        <option value="land">Terrain</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="other">Autre</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Veuillez sélectionner un type de bien.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="status" class="form-label">Statut*</label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="">Sélectionner un statut</option>
+                                        <option value="for_sale">À vendre</option>
+                                        <option value="for_rent">À louer</option>
+                                        <option value="sold">Vendu</option>
+                                        <option value="rented">Loué</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Veuillez sélectionner un statut.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_id" class="form-label">Propriétaire*</label>
+                                    <select class="form-select" id="owner_id" name="owner_id" required>
+                                        <option value="">Sélectionner un propriétaire</option>
+                                        {% for owner in owners %}
+                                        <option value="{{ owner.id }}">
+                                            {% if owner.is_company %}
+                                                {{ owner.company_name }}
+                                            {% else %}
+                                                {{ owner.first_name }} {{ owner.last_name }}
+                                            {% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Veuillez sélectionner un propriétaire.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="year_built" class="form-label">Année de construction</label>
+                                    <input type="number" class="form-control" id="year_built" name="year_built" min="1800" max="{{ current_year }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="description" class="form-label">Description*</label>
+                                    <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir une description.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Adresse</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="address_line1" class="form-label">Adresse ligne 1*</label>
+                                    <input type="text" class="form-control" id="address_line1" name="address_line1" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir une adresse.
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="address_line2" class="form-label">Adresse ligne 2</label>
+                                    <input type="text" class="form-control" id="address_line2" name="address_line2">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="city" class="form-label">Ville*</label>
+                                    <input type="text" class="form-control" id="city" name="city" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir une ville.
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="postal_code" class="form-label">Code postal*</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir un code postal.
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="state_province" class="form-label">État/Province</label>
+                                    <input type="text" class="form-control" id="state_province" name="state_province">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="country" class="form-label">Pays*</label>
+                                    <input type="text" class="form-control" id="country" name="country" value="France" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir un pays.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Caractéristiques -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Caractéristiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="total_area" class="form-label">Surface totale (m²)*</label>
+                                    <input type="number" class="form-control" id="total_area" name="total_area" min="1" step="0.01" required>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir une surface valide.
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="living_area" class="form-label">Surface habitable (m²)</label>
+                                    <input type="number" class="form-control" id="living_area" name="living_area" min="0" step="0.01">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="land_area" class="form-label">Surface terrain (m²)</label>
+                                    <input type="number" class="form-control" id="land_area" name="land_area" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="num_bedrooms" class="form-label">Nombre de chambres*</label>
+                                    <input type="number" class="form-control" id="num_bedrooms" name="num_bedrooms" min="0" value="0" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="num_bathrooms" class="form-label">Nombre de salles de bain*</label>
+                                    <input type="number" class="form-control" id="num_bathrooms" name="num_bathrooms" min="0" value="0" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="num_floors" class="form-label">Nombre d'étages</label>
+                                    <input type="number" class="form-control" id="num_floors" name="num_floors" min="0" value="1">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="floor_number" class="form-label">Étage (si appartement)</label>
+                                    <input type="number" class="form-control" id="floor_number" name="floor_number" min="0">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Équipements</label>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="has_garage" name="has_garage" value="1">
+                                                <label class="form-check-label" for="has_garage">
+                                                    Garage
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="has_garden" name="has_garden" value="1">
+                                                <label class="form-check-label" for="has_garden">
+                                                    Jardin
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="has_terrace" name="has_terrace" value="1">
+                                                <label class="form-check-label" for="has_terrace">
+                                                    Terrasse
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="has_pool" name="has_pool" value="1">
+                                                <label class="form-check-label" for="has_pool">
+                                                    Piscine
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="is_furnished" name="is_furnished" value="1">
+                                                <label class="form-check-label" for="is_furnished">
+                                                    Meublé
+       
+(Content truncated due to size limit. Use line ranges to read in chunks)

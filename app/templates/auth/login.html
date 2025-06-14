@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion - Gestion Immobilière{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="auth-form">
+            <h2 class="form-title text-center mb-4">Connexion</h2>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nom d'utilisateur ou email</label>
+                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                    <div class="invalid-feedback">
+                        Veuillez saisir votre nom d'utilisateur ou email.
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="invalid-feedback">
+                        Veuillez saisir votre mot de passe.
+                    </div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Se connecter</button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('auth.forgot_password') }}">Mot de passe oublié ?</a>
+                </div>
+            </form>
+            
+            <hr class="my-4">
+            
+            <div class="text-center">
+                <p>Vous n'avez pas de compte ?</p>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">Créer un compte</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - Gestion Immobilière{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Tableau de bord</h1>
+    </div>
+</div>
+
+<!-- Statistiques générales -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="count">{{ stats.properties_count }}</div>
+                <div class="title">Biens immobiliers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="count">{{ stats.owners_count }}</div>
+                <div class="title">Propriétaires</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="count">{{ stats.clients_count }}</div>
+                <div class="title">Clients</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="count">{{ stats.transactions_count }}</div>
+                <div class="title">Transactions</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques des biens -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Répartition des biens par statut</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="propertyStatusChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Répartition des biens par type</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="propertyTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques des transactions -->
+<div class="row mb-4">
+    <div class="col-md-8 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Transactions par mois</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Répartition des transactions</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activité récente -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Activité récente</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Utilisateur</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    {% if activity.activity_type == 'property' %}
+                                    <span class="badge bg-primary">Bien</span>
+                                    {% elif activity.activity_type == 'owner' %}
+                                    <span class="badge bg-secondary">Propriétaire</span>
+                                    {% elif activity.activity_type == 'client' %}
+                                    <span class="badge bg-info">Client</span>
+                                    {% elif activity.activity_type == 'transaction' %}
+                                    <span class="badge bg-success">Transaction</span>
+                                    {% elif activity.activity_type == 'visit' %}
+                                    <span class="badge bg-warning">Visite</span>
+                                    {% else %}
+                                    <span class="badge bg-dark">Autre</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ activity.description }}</td>
+                                <td>{{ activity.user.username }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">Aucune activité récente</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration des couleurs
+    const colors = {
+        primary: '#0d6efd',
+        success: '#198754',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#0dcaf0',
+        secondary: '#6c757d',
+        light: '#f8f9fa',
+        dark: '#212529'
+    };
+    
+    // Graphique de répartition des biens par statut
+    const propertyStatusCtx = document.getElementById('propertyStatusChart').getContext('2d');
+    const propertyStatusChart = new Chart(propertyStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['À vendre', 'À louer', 'Vendu', 'Loué'],
+            datasets: [{
+                data: [
+                    {{ stats.properties_for_sale }},
+                    {{ stats.properties_for_rent }},
+                    {{ stats.properties_sold }},
+                    {{ stats.properties_rented }}
+                ],
+                backgroundColor: [
+                    colors.success,
+                    colors.primary,
+                    colors.danger,
+                    colors.secondary
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    });
+    
+    // Graphique de répartition des biens par type
+    const propertyTypeCtx = document.getElementById('propertyTypeChart').getContext('2d');
+    const propertyTypeChart = new Chart(propertyTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Appartement', 'Maison', 'Terrain', 'Commercial', 'Autre'],
+            datasets: [{
+                data: [
+                    {{ stats.properties_apartment }},
+                    {{ stats.properties_house }},
+                    {{ stats.properties_land }},
+                    {{ stats.properties_commercial }},
+                    {{ stats.properties_other }}
+                ],
+                backgroundColor: [
+                    colors.primary,
+                    colors.success,
+                    colors.warning,
+                    colors.info,
+                    colors.secondary
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    });
+    
+    // Graphique des transactions par mois
+    const transactionsCtx = document.getElementById('transactionsChart').getContext('2d');
+    const transactionsChart = new Chart(transactionsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ stats.months|safe }},
+            datasets: [
+                {
+                    label: 'Ventes',
+                    data: {{ stats.sales_by_month|safe }},
+                    backgroundColor: colors.success,
+                    borderColor: colors.success,
+                    borderWidth: 1
+                },
+                {
+                    label: 'Locations',
+                    data: {{ stats.rentals_by_month|safe }},
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+    
+    // Graphique de répartition des transactions
+    const transactionTypeCtx = document.getElementById('transactionTypeChart').getContext('2d');
+    const transactionTypeChart = new Chart(transactionTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Ventes', 'Locations'],
+            datasets: [{
+                data: [
+                    {{ stats.sales_count }},
+                    {{ stats.rentals_count }}
+                ],
+                backgroundColor: [
+                    colors.success,
+                    colors.primary
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des biens immobiliers - Gestion Immobilière{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Biens immobiliers</h1>
+            <a href="{{ url_for('main.property_create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Ajouter un bien
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                        <i class="fas fa-filter me-1"></i>Filtres
+                    </button>
+                </h5>
+            </div>
+            <div class="collapse" id="filterCollapse">
+                <div class="card-body">
+                    <form class="filter-form" method="GET">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="property_type" class="form-label">Type de bien</label>
+                                <select class="form-select" id="property_type" name="property_type">
+                                    <option value="">Tous</option>
+                                    <option value="apartment" {% if request.args.get('property_type') == 'apartment' %}selected{% endif %}>Appartement</option>
+                                    <option value="house" {% if request.args.get('property_type') == 'house' %}selected{% endif %}>Maison</option>
+                                    <option value="land" {% if request.args.get('property_type') == 'land' %}selected{% endif %}>Terrain</option>
+                                    <option value="commercial" {% if request.args.get('property_type') == 'commercial' %}selected{% endif %}>Commercial</option>
+                                    <option value="other" {% if request.args.get('property_type') == 'other' %}selected{% endif %}>Autre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="status" class="form-label">Statut</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Tous</option>
+                                    <option value="for_sale" {% if request.args.get('status') == 'for_sale' %}selected{% endif %}>À vendre</option>
+                                    <option value="for_rent" {% if request.args.get('status') == 'for_rent' %}selected{% endif %}>À louer</option>
+                                    <option value="sold" {% if request.args.get('status') == 'sold' %}selected{% endif %}>Vendu</option>
+                                    <option value="rented" {% if request.args.get('status') == 'rented' %}selected{% endif %}>Loué</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="city" class="form-label">Ville</label>
+                                <input type="text" class="form-control" id="city" name="city" value="{{ request.args.get('city', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="owner_id" class="form-label">Propriétaire</label>
+                                <select class="form-select" id="owner_id" name="owner_id">
+                                    <option value="">Tous</option>
+                                    {% for owner in owners %}
+                                    <option value="{{ owner.id }}" {% if request.args.get('owner_id')|int == owner.id %}selected{% endif %}>
+                                        {% if owner.is_company %}
+                                            {{ owner.company_name }}
+                                        {% else %}
+                                            {{ owner.first_name }} {{ owner.last_name }}
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="min_price" class="form-label">Prix minimum</label>
+                                <input type="number" class="form-control" id="min_price" name="min_price" value="{{ request.args.get('min_price', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="max_price" class="form-label">Prix maximum</label>
+                                <input type="number" class="form-control" id="max_price" name="max_price" value="{{ request.args.get('max_price', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="min_area" class="form-label">Surface minimum (m²)</label>
+                                <input type="number" class="form-control" id="min_area" name="min_area" value="{{ request.args.get('min_area', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="max_area" class="form-label">Surface maximum (m²)</label>
+                                <input type="number" class="form-control" id="max_area" name="max_area" value="{{ request.args.get('max_area', '') }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="bedrooms" class="form-label">Chambres (min)</label>
+                                <input type="number" class="form-control" id="bedrooms" name="bedrooms" value="{{ request.args.get('bedrooms', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="bathrooms" class="form-label">Salles de bain (min)</label>
+                                <input type="number" class="form-control" id="bathrooms" name="bathrooms" value="{{ request.args.get('bathrooms', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="transaction_type" class="form-label">Type de transaction</label>
+                                <select class="form-select" id="transaction_type" name="transaction_type">
+                                    <option value="">Tous</option>
+                                    <option value="sale" {% if request.args.get('transaction_type') == 'sale' %}selected{% endif %}>Vente</option>
+                                    <option value="rental" {% if request.args.get('transaction_type') == 'rental' %}selected{% endif %}>Location</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 text-end">
+                                <button type="button" class="btn btn-secondary reset-filters-btn me-2">
+                                    <i class="fas fa-times me-1"></i>Réinitialiser
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Filtrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des biens -->
+<div class="row">
+    {% for property in properties %}
+    <div class="col-md-4 mb-4">
+        <div class="card property-card">
+            <div class="position-relative">
+                {% if property.images|length > 0 %}
+                <img src="{{ url_for('static', filename=property.images[0].file_path.replace('app/static/', '')) }}" class="card-img-top" alt="{{ property.title }}">
+                {% else %}
+                <img src="{{ url_for('static', filename='img/property-placeholder.jpg') }}" class="card-img-top" alt="Image non disponible">
+                {% endif %}
+                <div class="property-status status-{{ property.status }}">
+                    {% if property.status == 'for_sale' %}
+                    À vendre
+                    {% elif property.status == 'for_rent' %}
+                    À louer
+                    {% elif property.status == 'sold' %}
+                    Vendu
+                    {% elif property.status == 'rented' %}
+                    Loué
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ property.title }}</h5>
+                <p class="property-address mb-2">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    {{ property.city }}, {{ property.postal_code }}
+                </p>
+                <p class="property-price mb-3">
+                    {% if property.status in ['for_sale', 'sold'] %}
+                    {{ "{:,.0f}".format(property.asking_price).replace(',', ' ') }} €
+                    {% else %}
+                    {{ "{:,.0f}".format(property.rental_price).replace(',', ' ') }} € / mois
+                    {% endif %}
+                </p>
+                <div class="property-features d-flex justify-content-between text-muted mb-3">
+                    <span><i class="fas fa-ruler-combined me-1"></i> {{ property.total_area }} m²</span>
+                    <span><i class="fas fa-bed me-1"></i> {{ property.num_bedrooms }} ch.</span>
+                    <span><i class="fas fa-bath me-1"></i> {{ property.num_bathrooms }} sdb.</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('main.property_detail', property_id=property.id) }}" class="btn btn-primary">
+                        <i class="fas fa-eye me-1"></i>Détails
+                    </a>
+                    <a href="{{ url_for('main.property_edit', property_id=property.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i>Modifier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            Aucun bien immobilier trouvé.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="row">
+    <div class="col-md-12">
+        <nav aria-label="Pagination des biens immobiliers">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.properties_list', page=pagination.page-1, **request.args) }}" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for page_num in range(1, pagination.pages + 1) %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.properties_list', page=page_num, **request.args) }}">{{ page_num }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.properties_list', page=pagination.page+1, **request.args) }}" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

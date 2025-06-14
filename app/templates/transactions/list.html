@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des transactions - Gestion Immobilière{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Transactions</h1>
+            <a href="{{ url_for('main.transaction_create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Nouvelle transaction
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                        <i class="fas fa-filter me-1"></i>Filtres
+                    </button>
+                </h5>
+            </div>
+            <div class="collapse" id="filterCollapse">
+                <div class="card-body">
+                    <form class="filter-form" method="GET">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="transaction_type" class="form-label">Type</label>
+                                <select class="form-select" id="transaction_type" name="transaction_type">
+                                    <option value="">Tous</option>
+                                    <option value="sale" {% if request.args.get('transaction_type') == 'sale' %}selected{% endif %}>Vente</option>
+                                    <option value="rental" {% if request.args.get('transaction_type') == 'rental' %}selected{% endif %}>Location</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="status" class="form-label">Statut</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Tous</option>
+                                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>En cours</option>
+                                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Terminée</option>
+                                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Annulée</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="property_id" class="form-label">Bien immobilier</label>
+                                <select class="form-select" id="property_id" name="property_id">
+                                    <option value="">Tous</option>
+                                    {% for property in properties %}
+                                    <option value="{{ property.id }}" {% if request.args.get('property_id')|int == property.id %}selected{% endif %}>
+                                        {{ property.title }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="client_id" class="form-label">Client</label>
+                                <select class="form-select" id="client_id" name="client_id">
+                                    <option value="">Tous</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}" {% if request.args.get('client_id')|int == client.id %}selected{% endif %}>
+                                        {{ client.first_name }} {{ client.last_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="date_from" class="form-label">Date de début</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.args.get('date_from', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="date_to" class="form-label">Date de fin</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.args.get('date_to', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="min_amount" class="form-label">Montant minimum</label>
+                                <input type="number" class="form-control" id="min_amount" name="min_amount" value="{{ request.args.get('min_amount', '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="max_amount" class="form-label">Montant maximum</label>
+                                <input type="number" class="form-control" id="max_amount" name="max_amount" value="{{ request.args.get('max_amount', '') }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 text-end">
+                                <button type="button" class="btn btn-secondary reset-filters-btn me-2">
+                                    <i class="fas fa-times me-1"></i>Réinitialiser
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Filtrer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des transactions -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Bien</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.id }}</td>
+                                <td>{{ transaction.transaction_date.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if transaction.transaction_type == 'sale' %}
+                                    <span class="badge badge-transaction-type">Vente</span>
+                                    {% else %}
+                                    <span class="badge badge-transaction-type">Location</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.property_detail', property_id=transaction.property_id) }}">
+                                        {{ transaction.property.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.client_detail', client_id=transaction.client_id) }}">
+                                        {{ transaction.client.first_name }} {{ transaction.client.last_name }}
+                                    </a>
+                                </td>
+                                <td>{{ "{:,.0f}".format(transaction.amount).replace(',', ' ') }} €</td>
+                                <td>
+                                    {% if transaction.status == 'pending' %}
+                                    <span class="badge bg-warning">En cours</span>
+                                    {% elif transaction.status == 'completed' %}
+                                    <span class="badge bg-success">Terminée</span>
+                                    {% elif transaction.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Annulée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.transaction_detail', transaction_id=transaction.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.transaction_edit', transaction_id=transaction.id) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteTransactionModal" data-transaction-id="{{ transaction.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">Aucune transaction trouvée.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <nav aria-label="Pagination des transactions">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.transactions_list', page=pagination.page-1, **request.args) }}" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for page_num in range(1, pagination.pages + 1) %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.transactions_list', page=page_num, **request.args) }}">{{ page_num }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.transactions_list', page=pagination.page+1, **request.args) }}" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal de suppression -->
+<div class="modal fade" id="deleteTransactionModal" tabindex="-1" aria-labelledby="deleteTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTransactionModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette transaction ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="deleteTransactionForm" action="" method="POST">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuration du modal de suppression
+    const deleteTransactionModal = document.getElementById('deleteTransactionModal');
+    if (deleteTransactionModal) {
+        deleteTransactionModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const transactionId = button.getAttribute('data-transaction-id');
+            const form = document.getElementById('deleteTransactionForm');
+            form.action = `/transactions/${transactionId}/delete`;
+        });
+    }
+});
+</script>
+{% endblock %}
